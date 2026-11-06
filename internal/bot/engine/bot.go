@@ -39,6 +39,7 @@ func (b *Bot) handleUpdate(ctx context.Context, update *transport.Update) {
 			slog.Error("Panic while handling update", "panic", r, "stack", string(debug.Stack()))
 		}
 	}()
+	slog.Info("Received update", "message", update.Message)
 	b.router.handleUpdate(ctx, update)
 }
 
