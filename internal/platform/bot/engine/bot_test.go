@@ -2,10 +2,10 @@ package engine
 
 import (
 	"context"
+	"technovilochka/internal/platform/bot/state"
+	"technovilochka/internal/platform/bot/transport"
 	"testing"
-
-	"technovilochka/internal/bot/state"
-	"technovilochka/internal/bot/transport"
+	"time"
 )
 
 // fakeClient реализует только GetUpdatesChan; остальные методы интерфейса в тесте не вызываются.
@@ -34,5 +34,25 @@ func TestRunSurvivesHandlerPanic(t *testing.T) {
 
 	if handled != 2 {
 		t.Fatalf("expected both updates to be handled despite the panic, got %d", handled)
+	}
+}
+
+func TestRunStopsWhenContextCancelled(t *testing.T) {
+	updates := make(chan transport.Update) // канал остаётся открытым, как при обычной работе
+	bot := NewBot(&fakeClient{updates: updates}, NewRouter(state.New()))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		bot.Run(ctx)
+	}()
+
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Run did not stop after context cancellation")
 	}
 }

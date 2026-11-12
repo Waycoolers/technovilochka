@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"runtime/debug"
-	"technovilochka/internal/bot/transport"
+	"technovilochka/internal/platform/bot/transport"
 )
 
 type Bot struct {
@@ -24,9 +24,17 @@ func (b *Bot) Run(ctx context.Context) {
 
 	updateChan := b.client.GetUpdatesChan()
 
-	for update := range updateChan {
-		if update.Message != nil || update.CallbackQuery != nil {
-			b.handleUpdate(ctx, &update)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case update, ok := <-updateChan:
+			if !ok {
+				return
+			}
+			if update.Message != nil || update.CallbackQuery != nil {
+				b.handleUpdate(ctx, &update)
+			}
 		}
 	}
 }
@@ -39,7 +47,7 @@ func (b *Bot) handleUpdate(ctx context.Context, update *transport.Update) {
 			slog.Error("Panic while handling update", "panic", r, "stack", string(debug.Stack()))
 		}
 	}()
-	slog.Info("Received update", "message", update.Message)
+	slog.Debug("Received update", "message", update.Message)
 	b.router.handleUpdate(ctx, update)
 }
 

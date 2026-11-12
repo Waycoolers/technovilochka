@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS bot_sessions;
+DROP TABLE IF EXISTS users;

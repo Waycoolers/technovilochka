@@ -3,7 +3,7 @@ package responder
 import (
 	"context"
 	"log/slog"
-	"technovilochka/internal/bot/transport"
+	"technovilochka/internal/platform/bot/transport"
 )
 
 type Responder struct {

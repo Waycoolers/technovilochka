@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS planner_settings;
+DROP TABLE IF EXISTS items;

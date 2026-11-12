@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
-	"technovilochka/internal/bot/transport"
-	"technovilochka/internal/config"
+	"technovilochka/internal/platform/bot/transport"
+	"technovilochka/internal/platform/config"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -40,10 +40,11 @@ func clearOldUpdates(api *tgbotapi.BotAPI) error {
 }
 
 func convertUpdate(upd tgbotapi.Update) transport.Update {
-	if upd.Message != nil {
+	if upd.Message != nil && upd.Message.From != nil {
 		userName, firstName := userNames(upd.Message.From)
 		return transport.Update{
 			Message: &transport.Message{
+				UserID:    upd.Message.From.ID,
 				ChatID:    upd.Message.Chat.ID,
 				UserName:  userName,
 				FirstName: firstName,
@@ -56,6 +57,7 @@ func convertUpdate(upd tgbotapi.Update) transport.Update {
 		return transport.Update{
 			Message: nil,
 			CallbackQuery: &transport.CallbackQuery{
+				UserID:    upd.CallbackQuery.From.ID,
 				ChatID:    upd.CallbackQuery.Message.Chat.ID,
 				MessageID: upd.CallbackQuery.Message.MessageID,
 				Data:      upd.CallbackQuery.Data,

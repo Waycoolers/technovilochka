@@ -4,16 +4,17 @@ import (
 	"context"
 	"log/slog"
 	"strings"
-	"technovilochka/internal/bot/state"
-	"technovilochka/internal/bot/transport"
+	"technovilochka/internal/platform/bot/state"
+	"technovilochka/internal/platform/bot/transport"
 )
 
 type Router struct {
-	commands  map[transport.Command]Handler
-	callbacks map[transport.Callback]Handler
-	fallback  Handler
-	states    map[state.State]Handler
-	sm        *state.Machine
+	commands         map[transport.Command]Handler
+	callbacks        map[transport.Callback]Handler
+	messageFallback  Handler
+	callbackFallback Handler
+	states           map[state.State]Handler
+	sm               *state.Machine
 }
 
 type Handler func(ctx context.Context, update *transport.Update)
@@ -35,8 +36,12 @@ func (r *Router) RegisterCallback(callback transport.Callback, handler Handler) 
 	r.callbacks[callback] = handler
 }
 
-func (r *Router) RegisterFallback(handler Handler) {
-	r.fallback = handler
+func (r *Router) RegisterMessageFallback(handler Handler) {
+	r.messageFallback = handler
+}
+
+func (r *Router) RegisterCallbackFallback(handler Handler) {
+	r.callbackFallback = handler
 }
 
 func (r *Router) RegisterState(s state.State, handler Handler) {
@@ -57,12 +62,12 @@ func (r *Router) handleUpdate(ctx context.Context, update *transport.Update) {
 }
 
 func (r *Router) handleMessage(ctx context.Context, update *transport.Update) {
-	chatID := update.Message.ChatID
+	userID := update.Message.UserID
 	text := update.Message.Text
-	userState := r.sm.GetStep(chatID)
+	userState := r.sm.GetStep(userID)
 
 	if h, ok := r.commands[transport.Command(text)]; ok {
-		r.sm.SetStep(chatID, state.Empty)
+		r.sm.SetStep(userID, state.Empty)
 		h(ctx, update)
 		return
 	}
@@ -72,11 +77,11 @@ func (r *Router) handleMessage(ctx context.Context, update *transport.Update) {
 			h(ctx, update)
 			return
 		}
-		r.sm.SetStep(chatID, state.Empty)
+		r.sm.SetStep(userID, state.Empty)
 	}
 
-	if r.fallback != nil {
-		r.fallback(ctx, update)
+	if r.messageFallback != nil {
+		r.messageFallback(ctx, update)
 		return
 	}
 
@@ -92,8 +97,8 @@ func (r *Router) handleCallback(ctx context.Context, update *transport.Update) {
 		return
 	}
 
-	if r.fallback != nil {
-		r.fallback(ctx, update)
+	if r.callbackFallback != nil {
+		r.callbackFallback(ctx, update)
 		return
 	}
 

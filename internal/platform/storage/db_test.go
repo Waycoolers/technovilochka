@@ -1,9 +1,8 @@
 package storage
 
 import (
+	"technovilochka/internal/platform/config"
 	"testing"
-
-	"technovilochka/internal/config"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )

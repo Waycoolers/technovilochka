@@ -25,8 +25,8 @@ func TestConvertUpdateWithoutOptionalFields(t *testing.T) {
 	msg := convertUpdate(tgbotapi.Update{
 		Message: &tgbotapi.Message{Chat: &tgbotapi.Chat{ID: 1}, Text: "hi"},
 	})
-	if msg.Message == nil || msg.Message.ChatID != 1 || msg.Message.Text != "hi" {
-		t.Fatalf("message without From must be converted, got %+v", msg)
+	if msg.Message != nil || msg.CallbackQuery != nil {
+		t.Fatalf("message without From must be skipped, got %+v", msg)
 	}
 
 	cb := convertUpdate(tgbotapi.Update{

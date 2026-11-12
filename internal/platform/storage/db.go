@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net"
 	"net/url"
-	"technovilochka/internal/config"
+	"technovilochka/internal/platform/config"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // регистрирует драйвер database/sql "pgx"
 	"github.com/jmoiron/sqlx"
@@ -17,10 +17,6 @@ type Storage struct {
 func New(cfg *config.DBConfig) (*Storage, error) {
 	db, err := sqlx.Connect("pgx", buildDSN(cfg))
 	if err != nil {
-		return nil, err
-	}
-
-	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -49,4 +45,8 @@ func buildDSN(cfg *config.DBConfig) string {
 		RawQuery: "sslmode=disable",
 	}
 	return dsn.String()
+}
+
+func (s *Storage) DB() *sqlx.DB {
+	return s.db
 }

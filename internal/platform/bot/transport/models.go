@@ -1,6 +1,7 @@
 package transport
 
 type Message struct {
+	UserID    int64
 	ChatID    int64
 	UserName  string
 	FirstName string
@@ -8,6 +9,7 @@ type Message struct {
 }
 
 type CallbackQuery struct {
+	UserID    int64
 	ChatID    int64
 	MessageID int
 	Data      string
